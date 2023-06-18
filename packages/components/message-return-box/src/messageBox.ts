@@ -5,27 +5,22 @@ import {
   isClient,
   isElement,
   isFunction,
-  isObject,
   isString,
-  isUndefined,
   isVNode,
 } from '@element-plus/utils'
 import MessageBoxConstructor from './index.vue'
-
-import type { AppContext, ComponentPublicInstance, VNode } from 'vue'
 import type {
   Action,
   Callback,
-  ElMessageBoxOptions,
-  ElMessageBoxShortcutMethod,
-  IElMessageBox,
-  MessageBoxData,
   MessageBoxState,
-} from './message-box.type'
+} from '@element-plus/components/message-box/src/message-box.type'
+
+import type { AppContext, ComponentPublicInstance } from 'vue'
+import type { ElMessageReturnOptions, MsgReturnType } from './message-box.type'
 
 // component default merge props & data
 
-const messageInstance = new Map<
+const msgReturnInstance = new Map<
   ComponentPublicInstance<{ doClose: () => void }>, // marking doClose as function
   {
     options: any
@@ -83,26 +78,34 @@ const genContainer = () => {
   return document.createElement('div')
 }
 
-const showMessage = (options: any, appContext?: AppContext | null) => {
+const showMessage = <VRT>(options: any, appContext?: AppContext | null) => {
   const container = genContainer()
   // Adding destruct method.
   // when transition leaves emitting `vanish` evt. so that we can do the clean job.
   options.onVanish = () => {
     // not sure if this causes mem leak, need proof to verify that.
     // maybe calling out like 1000 msg-box then close them all.
+    console.info('vanished vm:', vm)
     render(null, container)
-    messageInstance.delete(vm) // Remove vm to avoid mem leak.
+    msgReturnInstance.delete(vm) // Remove vm to avoid mem leak.
     // here we were suppose to call document.body.removeChild(container.firstElementChild)
     // but render(null, container) did that job for us. so that we do not call that directly
   }
 
   options.onAction = (action: Action) => {
-    const currentMsg = messageInstance.get(vm)!
-    let resolve: Action | { value: string; action: Action }
+    const currentMsg = msgReturnInstance.get(vm)!
+    let resolve: MsgReturnType<VRT>
+    console.info('options.vmReturnKey:', options.vmReturnKey)
+    console.info('vm[options.vmReturnKey]:', vm[options.vmReturnKey])
+    console.info('vm:', vm)
     if (options.showInput) {
-      resolve = { value: vm.inputValue, action }
+      resolve = {
+        value: vm.inputValue,
+        action,
+        vmReturnValue: vm[options.vmReturnKey],
+      }
     } else {
-      resolve = action
+      resolve = { action, vmReturnValue: vm[options.vmReturnKey] }
     }
     if (options.callback) {
       options.callback(resolve, instance.proxy)
@@ -128,7 +131,7 @@ const showMessage = (options: any, appContext?: AppContext | null) => {
     {
       visible: boolean
       doClose: () => void
-    } & MessageBoxState
+    } & MessageBoxState & { [k: string]: any }
   >
 
   for (const prop in options) {
@@ -141,101 +144,40 @@ const showMessage = (options: any, appContext?: AppContext | null) => {
   vm.visible = true
   return vm
 }
-
-async function MessageBox(
-  options: ElMessageBoxOptions,
+export type TMsgReturnBox = {
+  <VRT>(
+    options: ElMessageReturnOptions,
+    appContext?: AppContext | null
+  ): Promise<MsgReturnType<VRT>>
+  _context: AppContext | undefined
+}
+export const MsgReturnBox = <TMsgReturnBox>(<VRT>(
+  options: ElMessageReturnOptions,
   appContext?: AppContext | null
-): Promise<MessageBoxData>
-function MessageBox(
-  options: ElMessageBoxOptions | string | VNode,
-  appContext: AppContext | null = null
-): Promise<{ value: string; action: Action } | Action> {
+): Promise<MsgReturnType<VRT>> => {
   if (!isClient) return Promise.reject()
   let callback: Callback | undefined
   if (isString(options) || isVNode(options)) {
     options = {
       message: options,
+      vmReturnKey: options.vmReturnKey,
     }
   } else {
     callback = options.callback
   }
 
   return new Promise((resolve, reject) => {
+    console.log('MsgReturnBox showMessage:', showMessage(options, appContext))
     const vm = showMessage(
       options,
-      appContext ?? (MessageBox as IElMessageBox)._context
+      appContext ?? (MsgReturnBox as TMsgReturnBox)._context
     )
     // collect this vm in order to handle upcoming events.
-    messageInstance.set(vm, {
+    msgReturnInstance.set(vm, {
       options,
       callback,
       resolve,
       reject,
     })
   })
-}
-
-const MESSAGE_BOX_VARIANTS = ['alert', 'confirm', 'prompt'] as const
-const MESSAGE_BOX_DEFAULT_OPTS: Record<
-  typeof MESSAGE_BOX_VARIANTS[number],
-  Partial<ElMessageBoxOptions>
-> = {
-  alert: { closeOnPressEscape: false, closeOnClickModal: false },
-  confirm: { showCancelButton: true },
-  prompt: { showCancelButton: true, showInput: true },
-}
-
-MESSAGE_BOX_VARIANTS.forEach((boxType) => {
-  ;(MessageBox as IElMessageBox)[boxType] = messageBoxFactory(
-    boxType
-  ) as ElMessageBoxShortcutMethod
 })
-
-function messageBoxFactory(boxType: typeof MESSAGE_BOX_VARIANTS[number]) {
-  return (
-    message: string | VNode,
-    title: string | ElMessageBoxOptions,
-    options?: ElMessageBoxOptions,
-    appContext?: AppContext | null
-  ) => {
-    let titleOrOpts = ''
-    if (isObject(title)) {
-      options = title as ElMessageBoxOptions
-      titleOrOpts = ''
-    } else if (isUndefined(title)) {
-      titleOrOpts = ''
-    } else {
-      titleOrOpts = title as string
-    }
-
-    return MessageBox(
-      Object.assign(
-        {
-          title: titleOrOpts,
-          message,
-          type: '',
-          ...MESSAGE_BOX_DEFAULT_OPTS[boxType],
-        },
-        options,
-        {
-          boxType,
-        }
-      ),
-      appContext
-    )
-  }
-}
-
-MessageBox.close = () => {
-  // instance.setupInstall.doClose()
-  // instance.setupInstall.state.visible = false
-
-  messageInstance.forEach((_, vm) => {
-    vm.doClose()
-  })
-
-  messageInstance.clear()
-}
-;(MessageBox as IElMessageBox)._context = null
-
-export default MessageBox as IElMessageBox

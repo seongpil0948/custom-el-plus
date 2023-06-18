@@ -1,20 +1,18 @@
-import MessageBox from './src/messageBox'
+import { MsgReturnBox, type TMsgReturnBox } from './src/messageBox'
 
 import type { App } from 'vue'
 import type { SFCWithInstall } from '@element-plus/utils'
 
-const _MessageBox = MessageBox as SFCWithInstall<typeof MessageBox>
+const _MessageReturnBox = MsgReturnBox as SFCWithInstall<TMsgReturnBox>
 
-_MessageBox.install = (app: App) => {
-  _MessageBox._context = app._context
-  app.config.globalProperties.$msgbox = _MessageBox
-  app.config.globalProperties.$messageBox = _MessageBox
-  app.config.globalProperties.$alert = _MessageBox.alert
-  app.config.globalProperties.$confirm = _MessageBox.confirm
-  app.config.globalProperties.$prompt = _MessageBox.prompt
+_MessageReturnBox.install = (app: App) => {
+  app.config.globalProperties.$msgReturn = _MessageReturnBox
+  _MessageReturnBox._context = app._context
+  console.log('ElMsgReturnBox installed:', ElMsgReturnBox._context)
 }
 
-export default _MessageBox
-export const ElMessageBox = _MessageBox
+export default _MessageReturnBox
+export const ElMsgReturnBox = _MessageReturnBox
+console.log('ElMsgReturnBox:', ElMsgReturnBox.install)
 
 export * from './src/message-box.type'
