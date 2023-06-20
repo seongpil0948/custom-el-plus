@@ -1,7 +1,7 @@
 {
-  "name": "element-plus",
-  "version": "0.0.0-dev.1",
-  "description": "A Component Library for Vue 3",
+  "name": "el-plus-sp",
+  "version": "0.0.0",
+  "description": "Custom Element-Ui library",
   "keywords": [
     "element-plus",
     "element",
@@ -12,7 +12,7 @@
   ],
   "homepage": "https://element-plus.org/",
   "bugs": {
-    "url": "https://github.com/element-plus/element-plus/issues"
+    "url": "https://github.com/seongpil0948/el-plus-sp/issues"
   },
   "license": "MIT",
   "main": "lib/index.js",
@@ -36,7 +36,7 @@
   "jsdelivr": "dist/index.full.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/element-plus/element-plus.git"
+    "url": "git+https://github.com/seongpil0948/el-plus-sp.git"
   },
   "publishConfig": {
     "access": "public"
@@ -50,30 +50,30 @@
     "lib/components/*/style/*"
   ],
   "peerDependencies": {
-    "vue": "^3.2.0"
+    "vue": "^3.3.4"
   },
   "dependencies": {
-    "@ctrl/tinycolor": "^3.4.1",
-    "@element-plus/icons-vue": "^2.0.6",
-    "@floating-ui/dom": "^1.0.1",
+    "@ctrl/tinycolor": "^3.6.0",
+    "@element-plus/icons-vue": "^2.1.0",
+    "@floating-ui/dom": "^1.4.1",
     "@popperjs/core": "npm:@sxzz/popperjs-es@^2.11.7",
-    "@types/lodash": "^4.14.182",
-    "@types/lodash-es": "^4.17.6",
-    "@vueuse/core": "^9.1.0",
+    "@types/lodash": "^4.14.195",
+    "@types/lodash-es": "^4.17.7",
+    "@vueuse/core": "^9.13.0",
     "async-validator": "^4.2.5",
-    "dayjs": "^1.11.3",
+    "dayjs": "^1.11.8",
     "escape-html": "^1.0.3",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
-    "lodash-unified": "^1.0.2",
+    "lodash-unified": "^1.0.3",
     "memoize-one": "^6.0.0",
     "normalize-wheel-es": "^1.2.0"
   },
   "devDependencies": {
-    "@types/node": "*",
-    "csstype": "^2.6.20",
-    "vue": "^3.2.37",
-    "vue-router": "^4.0.16"
+    "@types/node": "^20.3.1",
+    "csstype": "^2.6.21",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.2"
   },
   "vetur": {
     "tags": "tags.json",
