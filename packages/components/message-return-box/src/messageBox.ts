@@ -9,13 +9,14 @@ import {
   isVNode,
 } from '@element-plus/utils'
 import MessageBoxConstructor from './index.vue'
+import type { RawSlots } from '@element-plus/utils'
 import type {
   Action,
   Callback,
   MessageBoxState,
 } from '@element-plus/components/message-box/src/message-box.type'
 
-import type { AppContext, ComponentPublicInstance } from 'vue'
+import type { AppContext, ComponentPublicInstance, VNode } from 'vue'
 import type { ElMessageReturnOptions, MsgReturnType } from './message-box.type'
 
 // component default merge props & data
@@ -57,17 +58,17 @@ const initInstance = (
   container: HTMLElement,
   appContext: AppContext | null = null
 ) => {
+  const msg = props.message
   const vnode = createVNode(
     MessageBoxConstructor,
     props,
-    isFunction(props.message) || isVNode(props.message)
+    isFunction(msg) || isVNode(msg)
       ? {
-          default: isFunction(props.message)
-            ? props.message
-            : () => props.message,
+          default: isFunction(msg) ? msg : () => msg,
         }
       : null
   )
+
   vnode.appContext = appContext
   render(vnode, container)
   getAppendToElement(props).appendChild(container.firstElementChild!)
@@ -91,21 +92,36 @@ const showMessage = <VRT>(options: any, appContext?: AppContext | null) => {
     // here we were suppose to call document.body.removeChild(container.firstElementChild)
     // but render(null, container) did that job for us. so that we do not call that directly
   }
+  const isRawSlots = (val: any): val is RawSlots => {
+    return val.default ? true : false
+  }
 
   options.onAction = (action: Action) => {
     const currentMsg = msgReturnInstance.get(vm)!
     let resolve: MsgReturnType<VRT>
-    console.info('options.vmReturnKey:', options.vmReturnKey)
-    console.info('vm[options.vmReturnKey]:', vm[options.vmReturnKey])
-    console.info('vm:', vm)
+    // console.info('options.vmReturnKey:', options.vmReturnKey)
+    // console.info('vm:', vm)
+    // console.info('currentMsg:', currentMsg)
+    const getReturnVal = () => {
+      if (!vm.$ || !vm.$.vnode.children || !vm.$.vnode.children) return
+      if (isRawSlots(vm.$.vnode.children)) {
+        const node = isFunction(vm.$.vnode.children.default)
+          ? (vm.$.vnode.children.default() as VNode)
+          : (vm.$.vnode.children.default as VNode)
+        if (node.component && node.component.exposed) {
+          return node.component.exposed[options.vmReturnKey]()
+        }
+      }
+    }
+
     if (options.showInput) {
       resolve = {
         value: vm.inputValue,
         action,
-        vmReturnValue: vm[options.vmReturnKey],
+        vmReturnValue: getReturnVal(),
       }
     } else {
-      resolve = { action, vmReturnValue: vm[options.vmReturnKey] }
+      resolve = { action, vmReturnValue: getReturnVal() }
     }
     if (options.callback) {
       options.callback(resolve, instance.proxy)
