@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/custom-error-definition */
 import { createVNode, render } from 'vue'
 import {
   debugWarn,
@@ -109,7 +110,8 @@ const showMessage = <VRT>(options: any, appContext?: AppContext | null) => {
           ? (vm.$.vnode.children.default() as VNode)
           : (vm.$.vnode.children.default as VNode)
         if (node.component && node.component.exposed) {
-          return node.component.exposed[options.vmReturnKey]()
+          const obtainedVal = node.component.exposed[options.vmReturnKey]
+          return isFunction(obtainedVal) ? obtainedVal() : obtainedVal
         }
       }
     }
@@ -171,7 +173,8 @@ export const MsgReturnBox = <TMsgReturnBox>(<VRT>(
   options: ElMessageReturnOptions,
   appContext?: AppContext | null
 ): Promise<MsgReturnType<VRT>> => {
-  if (!isClient) return Promise.reject()
+  if (!isClient) return Promise.reject('only used Client Side')
+  validateOpt(options)
   let callback: Callback | undefined
   if (isString(options) || isVNode(options)) {
     options = {
@@ -183,7 +186,6 @@ export const MsgReturnBox = <TMsgReturnBox>(<VRT>(
   }
 
   return new Promise((resolve, reject) => {
-    console.log('MsgReturnBox showMessage:', showMessage(options, appContext))
     const vm = showMessage(
       options,
       appContext ?? (MsgReturnBox as TMsgReturnBox)._context
@@ -197,3 +199,13 @@ export const MsgReturnBox = <TMsgReturnBox>(<VRT>(
     })
   })
 })
+
+const validateOpt = (opt: ElMessageReturnOptions) => {
+  if (isFunction(opt.message)) throw new FunctionNotAllow('message')
+}
+
+class FunctionNotAllow extends Error {
+  constructor(name: string) {
+    super(`${name} must be not function type`)
+  }
+}
