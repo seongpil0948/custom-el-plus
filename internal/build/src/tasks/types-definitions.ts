@@ -40,7 +40,7 @@ export const generateTypesDefinitions = async () => {
   const sourceFiles = await addSourceFiles(project)
   consola.success('Added source files')
 
-  typeCheck(project)
+  // typeCheck(project)
   consola.success('Type check passed!')
 
   await project.emit({

@@ -23,11 +23,13 @@ async function main() {
   const pkgs = Object.fromEntries(
     (await getWorkspacePackages()).map((pkg) => [pkg.manifest.name!, pkg])
   )
-  const elementPlus = pkgs['element-plus'] || pkgs['@element-plus/nightly']
+  console.log('pkgs:', pkgs)
+  const elementPlus = pkgs['el-plus-sp'] || pkgs['@element-plus/nightly']
   const eslintConfig = pkgs['@element-plus/eslint-config']
   const metadata = pkgs['@element-plus/metadata']
 
   const writeVersion = async (project: Project) => {
+    console.info('project:', project)
     await project.writeProjectManifest({
       ...project.manifest,
       version: tagVersion,
@@ -36,8 +38,11 @@ async function main() {
   }
 
   try {
+    console.log('pkg: elementPlus:', elementPlus)
     await writeVersion(elementPlus)
+    console.log('pkg: eslintConfig:', eslintConfig)
     await writeVersion(eslintConfig)
+    console.log('pkg: metadata:', metadata)
     await writeVersion(metadata)
   } catch (err: any) {
     errorAndExit(err)

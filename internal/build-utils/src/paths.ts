@@ -1,7 +1,9 @@
 import { resolve } from 'path'
 
+console.log('__dirname:', __dirname)
 export const projRoot = resolve(__dirname, '..', '..', '..')
 export const pkgRoot = resolve(projRoot, 'packages')
+console.log('pkgRoot:', pkgRoot)
 export const compRoot = resolve(pkgRoot, 'components')
 export const themeRoot = resolve(pkgRoot, 'theme-chalk')
 export const hookRoot = resolve(pkgRoot, 'hooks')

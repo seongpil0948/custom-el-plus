@@ -1,6 +1,6 @@
 {
   "name": "el-plus-sp",
-  "version": "0.0.0",
+  "version": "v0.0.1",
   "description": "Custom Element-Ui library",
   "keywords": [
     "element-plus",
@@ -84,5 +84,6 @@
     "> 1%",
     "not ie 11",
     "not op_mini all"
-  ]
+  ],
+  "gitHead": "541b2aa969bba89be003ff5b35e208f61909973e"
 }
